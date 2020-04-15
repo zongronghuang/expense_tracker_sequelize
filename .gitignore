@@ -1,0 +1,16 @@
+# OS X
+.DS_Store*
+Icon?
+._*
+.env
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# npm
+node_modules
+package-lock.json
+*.log
+*.gz
