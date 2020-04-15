@@ -4,23 +4,15 @@ const app = express()
 const port = 3000
 const exphbs = require('express-handlebars')
 const bodyParser = require('body-parser')
-const mongoose = require('mongoose')
 const methodOverride = require('method-override')
 const session = require('express-session')
 const passport = require('passport')
 const flash = require('connect-flash')
 
+const db = require('./models')
+const Record = db.Record
+const User = db.User
 
-// 建立與 MongoDB 連線
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/record', { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true })
-
-const db = mongoose.connection
-db.on('error', () => {
-  console.log('mongodb error')
-})
-db.once('open', () => {
-  console.log('mongodb connected!')
-})
 
 // 設定套件
 app.engine('handlebars', exphbs({
@@ -60,7 +52,7 @@ app.use(methodOverride('_method'))
 app.use('/', require('./routes/home.js'))
 app.use('/users', require('./routes/user.js'))
 app.use('/records', require('./routes/record.js'))
-app.use('/auth', require('./routes/auths.js'))
+//app.use('/auth', require('./routes/auths.js'))
 
 // 監聽 server 啟動狀態
 

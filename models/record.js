@@ -7,8 +7,9 @@ module.exports = (sequelize, DataTypes) => {
     amount: DataTypes.NUMBER,
     retailer: DataTypes.STRING
   }, {});
-  Record.associate = function(models) {
+  Record.associate = function (models) {
     // associations can be defined here
+    Record.belongsTo(models.User)
   };
   return Record;
 };
