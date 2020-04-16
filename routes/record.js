@@ -1,89 +1,26 @@
 const express = require('express')
 const router = express.Router()
-const Record = require('../models/record.js')
+const db = require('../models')
+const Record = db.Record
+const User = db.User
 const { authenticated } = require('../config/auth.js')
 
 // 顯示所有購買項目
 router.get('/', authenticated, (req, res) => {
-  const queriedCategory = req.query.category || 'all'
-  const time = new Date()
-  const queriedMonth = req.query.month || time.toISOString().slice(0, 7)
+  User.findByPk(req.user.id)
+    .then(user => {
+      if (!user) throw new Error('找不到使用者')
 
-  if (queriedCategory === 'all') {
-    let total = 0
-    let subtotal = 0
-
-    Record.find({ userId: req.user._id, date: { $regex: queriedMonth } })
-      .lean()
-      .exec((err, records) => {
-        if (err) console.error(err)
-        records.forEach(record => {
-          total += record.amount
-        })
-
-        subtotal = total
-
-        records.forEach(record => {
-          const category = record.category
-          return record[category] = true
-        })
-
-        return res.render('index', {
-          records,
-          total,
-          subtotal,
-          percentage() {
-            if (!total) {
-              return '0'
-            } else {
-              return Math.round((subtotal * 100) / total)
-            }
-          },
-          queriedMonth,
-          all: true
-        })
+      return Record.findAll({
+        raw: true,
+        nest: true,
+        where: {
+          UserId: req.user.id
+        }
       })
-  } else {
-    let total = 0
-    let subtotal = 0
-
-    Record.find({ userId: req.user._id, date: { $regex: queriedMonth } })
-      .lean()
-      .exec((err, records) => {
-        records.forEach(record => {
-          total += record.amount
-        })
-      })
-
-    Record.find({ userId: req.user._id, category: queriedCategory, date: { $regex: queriedMonth } })
-      .lean()
-      .exec((err, records) => {
-        if (err) console.error(err)
-        records.forEach(record => {
-          subtotal += record.amount
-        })
-
-        records.forEach(record => {
-          const category = record.category
-          return record[category] = true
-        })
-
-        return res.render('index', {
-          records,
-          total,
-          subtotal,
-          percentage() {
-            if (!total) {
-              return '0'
-            } else {
-              return Math.round((subtotal * 100) / total)
-            }
-          },
-          queriedMonth,
-          [queriedCategory]: true
-        })
-      })
-  }
+    })
+    .then(records => { return res.render('index', { records: records }) })
+    .catch(error => { return console.log(error) })
 
 })
 
@@ -94,34 +31,31 @@ router.get('/new', authenticated, (req, res) => {
 
 // 傳回新增項目
 router.post('/', authenticated, (req, res) => {
-  const record = new Record({
+  Record.create({
     name: req.body.name,
     category: req.body.category,
     date: req.body.date,
     amount: req.body.amount,
     retailer: req.body.retailer,
-    userId: req.user._id
+    UserId: req.user.id
   })
-
-  record.save(err => {
-    if (err) console.error(err)
-    return res.redirect('/')
-  })
-
+    .then(record => { return res.redirect('/') })
+    .catch(error => { return console.log(error) })
 })
 
 // 取回項目編輯頁面
 router.get('/:id/edit', authenticated, (req, res) => {
-  Record.findOne({ _id: req.params.id, userId: req.user._id })
-    .lean()
-    .exec((err, record) => {
-      if (err) return console.error(err)
-
-      record[record.category] = true
-
-      return res.render('update', { record: record })
+  User.findByPk(req.user.id)
+    .then(user => {
+      if (!user) throw new Error('user not found')
+      return Record.findOne({
+        where: {
+          id: req.params.id,
+          UserId: req.user.id
+        }
+      })
     })
-
+    .then(record => { return res.render('update', { record: record.get() }) })
 })
 
 
