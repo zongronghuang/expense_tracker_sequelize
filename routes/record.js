@@ -7,20 +7,46 @@ const { authenticated } = require('../config/auth.js')
 
 // 顯示所有購買項目
 router.get('/', authenticated, (req, res) => {
-  User.findByPk(req.user.id)
-    .then(user => {
-      if (!user) throw new Error('找不到使用者')
+  const queriedCategory = req.query.category || 'all'
+  const time = new Date()
+  const queriedMonth = req.query.month || time.toISOString().slice(0, 7)
 
-      return Record.findAll({
-        raw: true,
-        nest: true,
-        where: {
-          UserId: req.user.id
-        }
+  if (queriedCategory === 'all') {
+    User.findByPk(req.user.id)
+      .then(user => {
+        if (!user) throw new Error('找不到使用者')
+
+        return Record.findAll({
+          raw: true,
+          nest: true,
+          where: {
+            UserId: req.user.id
+          }
+        })
       })
-    })
-    .then(records => { return res.render('index', { records: records }) })
-    .catch(error => { return console.log(error) })
+      .then(records => {
+        // 計算所有 record 的支出總和
+        let total = 0
+        records.forEach(record => {
+          total += record.amount
+        })
+
+        // 在每個 record 中新增屬性，讓 index 頁面能夠顯示對應圖示
+        records.forEach(record => {
+          const category = record.category
+          return (record[category] = true)
+        })
+
+        return res.render('index', {
+          records,
+          total,
+          [queriedCategory]: true
+        })
+      })
+      .catch(error => { return console.log(error) })
+  } else {
+    console.log('im else')
+  }
 
 })
 
