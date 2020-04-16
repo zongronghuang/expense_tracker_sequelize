@@ -50,7 +50,7 @@ router.get('/:id/edit', authenticated, (req, res) => {
       if (!user) throw new Error('user not found')
       return Record.findOne({
         where: {
-          id: req.params.id,
+          Id: req.params.id,
           UserId: req.user.id
         }
       })
@@ -61,30 +61,43 @@ router.get('/:id/edit', authenticated, (req, res) => {
 
 // 傳回編輯資料
 router.put('/:id', authenticated, (req, res) => {
-  Record.findOne({ _id: req.params.id, userId: req.user._id }, (err, record) => {
-    record.name = req.body.name
-    record.date = req.body.date
-    record.category = req.body.category
-    record.amount = req.body.amount
-    record.retailer = req.body.retailer
+  Record.findOne({
+    where: {
+      id: req.params.id,
+      UserId: req.user.id
+    }
+  })
+    .then(record => {
+      record.name = req.body.name
+      record.date = req.body.date
+      record.category = req.body.category
+      record.amount = req.body.amount
+      record.retailer = req.body.retailer
 
-    record.save(err => {
-      if (err) return console.error(err)
+      return record.save()
+    })
+    .then(record => {
       return res.redirect('/records')
     })
-  })
+    .catch(error => { console.log(error) })
 })
 
 
 // 刪除項目
 router.delete('/:id/delete', authenticated, (req, res) => {
-  Record.findOne({ _id: req.params.id, userId: req.user._id }, (err, record) => {
-    if (err) return console.error(err)
-    record.remove(err => {
-      if (err) return console.error(err)
-      return res.redirect('/records')
+  User.findByPk(req.user.id)
+    .then(user => {
+      if (!user) throw new Error('user not found')
+
+      return Record.destroy({
+        where: {
+          Id: req.params.id,
+          UserId: req.user.id
+        }
+      })
     })
-  })
+    .then(todo => { return res.redirect('/') })
+    .catch(error => { return console.log(error) })
 })
 
 
