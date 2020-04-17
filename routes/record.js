@@ -1,4 +1,5 @@
 const express = require('express')
+const app = express()
 const router = express.Router()
 const db = require('../models')
 const Record = db.Record
@@ -11,6 +12,7 @@ router.get('/', authenticated, (req, res) => {
   const time = new Date()
   const queriedMonth = req.query.month || time.toISOString().slice(0, 7)
 
+  // 顯示全部種類的支出
   if (queriedCategory === 'all') {
     User.findByPk(req.user.id)
       .then(user => {
@@ -26,9 +28,9 @@ router.get('/', authenticated, (req, res) => {
       })
       .then(records => {
         // 計算所有 record 的支出總和
-        let total = 0
+        app.locals.total = 0
         records.forEach(record => {
-          total += record.amount
+          app.locals.total += record.amount
         })
 
         // 在每個 record 中新增屬性，讓 index 頁面能夠顯示對應圖示
@@ -39,13 +41,48 @@ router.get('/', authenticated, (req, res) => {
 
         return res.render('index', {
           records,
-          total,
+          total: app.locals.total.toString(),
           [queriedCategory]: true
         })
       })
       .catch(error => { return console.log(error) })
-  } else {
-    console.log('im else')
+  }
+  // 顯示其他種類的支出
+  else {
+    User.findByPk(req.user.id)
+      .then(user => {
+        if (!user) throw new Error('找不到使用者')
+
+        return Record.findAll({
+          raw: true,
+          nest: true,
+          where: {
+            UserId: req.user.id,
+            category: queriedCategory
+          }
+        })
+      })
+      .then(records => {
+        // 在每個 record 中新增屬性，讓 index 頁面能夠顯示對應圖示
+        records.forEach(record => {
+          const category = record.category
+          return (record[category] = true)
+        })
+
+        // 計算該種類 record 的支出總和
+        app.locals.subtotal = 0
+        records.forEach(record => {
+          app.locals.subtotal += record.amount
+        })
+
+        return res.render('index', {
+          records,
+          subtotal: app.locals.subtotal.toString(),
+          percentage: Math.floor((app.locals.subtotal / app.locals.total) * 100),
+          [queriedCategory]: true
+        })
+      })
+      .catch(error => { return console.log(error) })
   }
 
 })
