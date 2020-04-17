@@ -5,15 +5,18 @@ const db = require('../models')
 const Record = db.Record
 const User = db.User
 const { authenticated } = require('../config/auth.js')
+const { Op } = require('sequelize')
 
 // 顯示所有購買項目
 router.get('/', authenticated, (req, res) => {
-  const queriedCategory = req.query.category || 'all'
+  app.locals.category = req.query.category || 'all'
   const time = new Date()
   const queriedMonth = req.query.month || time.toISOString().slice(0, 7)
+  app.locals.total = 0
+  app.locals.subtotal = 0
 
   // 顯示全部種類的支出
-  if (queriedCategory === 'all') {
+  if (app.locals.category === 'all') {
     User.findByPk(req.user.id)
       .then(user => {
         if (!user) throw new Error('找不到使用者')
@@ -22,13 +25,15 @@ router.get('/', authenticated, (req, res) => {
           raw: true,
           nest: true,
           where: {
-            UserId: req.user.id
+            UserId: req.user.id,
+            date: {
+              [Op.like]: queriedMonth + '%'
+            }
           }
         })
       })
       .then(records => {
         // 計算所有 record 的支出總和
-        app.locals.total = 0
         records.forEach(record => {
           app.locals.total += record.amount
         })
@@ -41,8 +46,9 @@ router.get('/', authenticated, (req, res) => {
 
         return res.render('index', {
           records,
-          total: app.locals.total.toString(),
-          [queriedCategory]: true
+          total: app.locals.total || '0',
+          [app.locals.category]: true,
+          queriedMonth
         })
       })
       .catch(error => { return console.log(error) })
@@ -58,7 +64,10 @@ router.get('/', authenticated, (req, res) => {
           nest: true,
           where: {
             UserId: req.user.id,
-            category: queriedCategory
+            category: app.locals.category,
+            date: {
+              [Op.like]: queriedMonth + '%'
+            }
           }
         })
       })
@@ -70,16 +79,16 @@ router.get('/', authenticated, (req, res) => {
         })
 
         // 計算該種類 record 的支出總和
-        app.locals.subtotal = 0
         records.forEach(record => {
           app.locals.subtotal += record.amount
         })
 
         return res.render('index', {
           records,
-          subtotal: app.locals.subtotal.toString(),
+          subtotal: app.locals.subtotal || '0',
           percentage: Math.floor((app.locals.subtotal / app.locals.total) * 100),
-          [queriedCategory]: true
+          queriedMonth,
+          [app.locals.category]: true
         })
       })
       .catch(error => { return console.log(error) })
