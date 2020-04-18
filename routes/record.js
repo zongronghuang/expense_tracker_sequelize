@@ -9,91 +9,61 @@ const { Op } = require('sequelize')
 
 // 顯示所有購買項目
 router.get('/', authenticated, (req, res) => {
-  app.locals.category = req.query.category || 'all'
+  const queriedCategory = req.query.category || 'all'
   const time = new Date()
   const queriedMonth = req.query.month || time.toISOString().slice(0, 7)
   app.locals.total = 0
   app.locals.subtotal = 0
 
-  // 顯示全部種類的支出
-  if (app.locals.category === 'all') {
-    User.findByPk(req.user.id)
-      .then(user => {
-        if (!user) throw new Error('找不到使用者')
+  User.findByPk(req.user.id)
+    .then(user => {
+      if (!user) throw new Error('找不到使用者')
 
-        return Record.findAll({
-          raw: true,
-          nest: true,
-          where: {
-            UserId: req.user.id,
-            date: {
-              [Op.like]: queriedMonth + '%'
-            }
+      return Record.findAll({
+        raw: true,
+        nest: true,
+        where: {
+          UserId: req.user.id,
+          date: {
+            [Op.like]: queriedMonth + '%'
           }
-        })
+        }
       })
-      .then(records => {
-        // 計算所有 record 的支出總和
-        records.forEach(record => {
-          app.locals.total += record.amount
-        })
+    })
+    .then(records => {
+      // 計算 total (該月份全部種類支出的總和)
+      records.forEach(record => {
+        app.locals.total += record.amount
+        record[record.category] = true
+      })
 
-        // 在每個 record 中新增屬性，讓 index 頁面能夠顯示對應圖示
-        records.forEach(record => {
-          const category = record.category
-          return (record[category] = true)
-        })
-
+      if (queriedCategory === 'all') {
+        // 在 index 上 render 全部類別的支出
         return res.render('index', {
           records,
           total: app.locals.total || '0',
-          [app.locals.category]: true,
+          [queriedCategory]: true,
           queriedMonth
         })
-      })
-      .catch(error => { return console.log(error) })
-  }
-  // 顯示其他種類的支出
-  else {
-    User.findByPk(req.user.id)
-      .then(user => {
-        if (!user) throw new Error('找不到使用者')
+      } else {
+        const subsetRecords = records.filter(record => record.category === queriedCategory)
 
-        return Record.findAll({
-          raw: true,
-          nest: true,
-          where: {
-            UserId: req.user.id,
-            category: app.locals.category,
-            date: {
-              [Op.like]: queriedMonth + '%'
-            }
-          }
-        })
-      })
-      .then(records => {
-        // 在每個 record 中新增屬性，讓 index 頁面能夠顯示對應圖示
-        records.forEach(record => {
-          const category = record.category
-          return (record[category] = true)
+        // 計算 subtotal (該月份特定種類支出的總和)
+        subsetRecords.forEach(subsetRecord => {
+          app.locals.subtotal += subsetRecord.amount
         })
 
-        // 計算該種類 record 的支出總和
-        records.forEach(record => {
-          app.locals.subtotal += record.amount
-        })
-
+        // 在 index 上 render 特定類別的支出 
         return res.render('index', {
-          records,
+          records: subsetRecords,
           subtotal: app.locals.subtotal || '0',
           percentage: Math.floor((app.locals.subtotal / app.locals.total) * 100),
-          queriedMonth,
-          [app.locals.category]: true
+          [queriedCategory]: true,
+          queriedMonth
         })
-      })
-      .catch(error => { return console.log(error) })
-  }
-
+      }
+    })
+    .catch(error => { return console.log(error) })
 })
 
 // 取得新增項目頁面
