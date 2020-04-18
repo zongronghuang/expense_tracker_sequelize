@@ -1,3 +1,8 @@
+<div class="mt-5 text-center">
+  <h3>消費累計：{{{total}}} 元</h3>
+</div>
+
+
 <div class="mx-auto w-50 mt-5">
   <form action="/records" method="GET" class="d-flex">
     <label for="category"></label>
@@ -14,22 +19,24 @@
     <input class="form-control ml-3" type="month" name="month" id="month" value="{{{queriedMonth}}}"
       onchange="this.form.submit()">
   </form>
-
-
 </div>
 
 <div class="text-center mt-5 mb-3 d-flex justify-content-center">
 
-  {{#if subtotal}}
+  {{#if monthlySubtotal}}
     <div title="種類支出" class="mr-5">
       <h1><i class="fas fa-search-dollar"></i></h1>
-      <h3>小計：{{{subtotal}}} 元</h3>
+      <h3>小計：{{{monthlySubtotal}}} 元</h3>
     </div>
   {{else}}
     <div title="本月總支出">
       <h1><i class="fas fa-calendar-alt"></i></h1>
-      <h3>總計：{{{total}}} 元</h3>
+      <h3>本月：{{{monthlyTotal}}} 元</h3>
     </div>
+  {{/if}}
+
+  {{#if monthlyTotal}}
+    <h1>yayayay</h1>
   {{/if}}
 
   {{#if percentage}}
