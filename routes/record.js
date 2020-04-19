@@ -44,7 +44,7 @@ router.get('/', authenticated, (req, res) => {
         return res.render('index', {
           records,
           total,
-          monthlyTotal: monthlyTotal || 100,
+          monthlyTotal: monthlyTotal || '0',
           [queriedCategory]: true,
           queriedMonth
         })
