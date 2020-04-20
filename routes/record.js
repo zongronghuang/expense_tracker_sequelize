@@ -40,6 +40,7 @@ router.get('/', authenticated, (req, res) => {
       })
 
       if (queriedCategory === 'all') {
+        console.log('monthly total', monthlyTotal)
         // 在 index 上 render 全部類別的支出
         return res.render('index', {
           records,
