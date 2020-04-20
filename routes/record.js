@@ -17,6 +17,26 @@ router.get('/', authenticated, (req, res) => {
     .then(user => {
       if (!user) throw new Error('找不到使用者')
 
+      // 回傳使用者的所有月份支出紀錄
+      return Record.findAll({
+        raw: true,
+        nest: true,
+        where: {
+          UserId: req.user.id
+        }
+      })
+    })
+    // 計算使用者所有月份的支出總金額 
+    .then(records => {
+      app.locals.total = 0
+      records.forEach(record => {
+        app.locals.total += record.amount
+      })
+
+      return true
+    })
+    // 回傳使用者單一月份的所有支出紀錄
+    .then(userFound => {
       return Record.findAll({
         raw: true,
         nest: true,
@@ -28,41 +48,40 @@ router.get('/', authenticated, (req, res) => {
         }
       })
     })
+    // 計算使用者單一月份所有類別的支出總金額 (monthlyTotal)
     .then(records => {
-      let total = 0
-      let monthlyTotal = 0
-      let monthlySubtotal = 0
-
-      // 計算 monthly total (該月份全部種類支出的總和)
+      app.locals.monthlyTotal = 0
       records.forEach(record => {
-        monthlyTotal += record.amount
+        app.locals.monthlyTotal += record.amount
         record[record.category] = true
       })
 
+      // render 單一月份全部類別的支出
       if (queriedCategory === 'all') {
-        console.log('monthly total', monthlyTotal)
-        // 在 index 上 render 全部類別的支出
+        console.log('monthly total', app.locals.monthlyTotal)
         return res.render('index', {
           records,
-          total,
-          monthlyTotal: monthlyTotal || '0',
+          total: app.locals.total,
+          monthlyTotal: app.locals.monthlyTotal || '0',
           [queriedCategory]: true,
           queriedMonth
         })
-      } else {
+      }
+      // 計算該月份某一種類支出的總和 (monthlySubtotal)
+      else {
+        app.locals.monthlySubtotal = 0
         const subsetRecords = records.filter(record => record.category === queriedCategory)
 
-        // 計算 monthly subtotal (該月份特定種類支出的總和)
         subsetRecords.forEach(subsetRecord => {
-          monthlySubtotal += subsetRecord.amount
+          app.locals.monthlySubtotal += subsetRecord.amount
         })
 
-        // 在 index 上 render 特定類別的支出 
+        // render 單一月份某一類別的支出
         return res.render('index', {
           records: subsetRecords,
-          total,
-          monthlySubtotal: monthlySubtotal || '0',
-          percentage: Math.floor((monthlySubtotal / monthlyTotal) * 100),
+          total: app.locals.total,
+          monthlySubtotal: app.locals.monthlySubtotal || '0',
+          percentage: Math.floor((app.locals.monthlySubtotal / app.locals.monthlyTotal) * 100),
           [queriedCategory]: true,
           queriedMonth
         })
