@@ -16,16 +16,20 @@
   <nav class="navbar navbar-light bg-info">
     <a class="navbar-brand" href="/">
       <i class="fas fa-calculator"></i>
-      家庭記帳本</a>
-    <div class="float-right d-flex">
+      家庭記帳本
+    </a>
 
+    {{#if isAuthenticated}}
+      <h6 class="font-weight-bold mt-2 text-black-50" title="從以前到現在的所有支出金額">支出總金額：{{{total}}} 元</h6>
+    {{/if}}
+
+    <div class="float-right d-flex">
       {{#if isAuthenticated}}
-        <span class="font-weight-bold mt-2">{{user.name}}，你好!</span>
+        <span class="font-weight-bold mt-2 text-black-50">{{user.name}}，你好!</span>
         <form class="ml-3" action="/users/logout" method="GET">
           <button class="btn btn-danger" type="submit">登出</button>
         </form>
       {{/if}}
-
     </div>
   </nav>
 

@@ -50,7 +50,6 @@ router.get('/', authenticated, (req, res) => {
       if (queriedCategory === 'all') {
         return res.render('index', {
           records: monthlyRecords,
-          total: res.locals.total,
           monthlyTotal: res.locals.monthlyTotal || '0',
           [queriedCategory]: true,
           queriedMonth
@@ -65,7 +64,6 @@ router.get('/', authenticated, (req, res) => {
 
         return res.render('index', {
           records: classifiedRecords,
-          total: res.locals.total,
           monthlySubtotal: res.locals.monthlySubtotal || '0',
           percentage: Math.floor((res.locals.monthlySubtotal / res.locals.monthlyTotal) * 100),
           [queriedCategory]: true,
