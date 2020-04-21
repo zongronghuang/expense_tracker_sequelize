@@ -57,19 +57,18 @@ router.post('/register', (req, res) => {
           password2
         })
       } else {
-        const newUser = new User({
-          name,
-          email,
-          password
-        })
-
         bcrypt.genSalt(10, (err, salt) =>
           bcrypt.hash(newUser.password, salt, (err, hash) => {
             if (err) throw err
+            User.create({
+              name,
+              email,
+              password: hash
+            })
             newUser.password = hash
             newUser
-              .save()
               .then(user => {
+                req.flash('success_msg', '註冊成功，已可登入')
                 res.redirect('/')                         // 新增完成導回首頁
               })
               .catch(err => console.log(err))
