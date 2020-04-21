@@ -38,6 +38,9 @@ app.use(flash())
 
 app.use((req, res, next) => {
   res.locals.user = req.user
+  res.locals.total = 0
+  res.locals.monthlyTotal = 0
+  res.locals.monthlySubtotal = 0
   res.locals.isAuthenticated = req.isAuthenticated()
   res.locals.success_msg = req.flash('success_msg')
   res.locals.warning_msg = req.flash('warning_msg')
@@ -48,6 +51,8 @@ app.use(express.static('public'))
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(methodOverride('_method'))
 
+
+
 // 分頁路由
 app.use('/', require('./routes/home.js'))
 app.use('/users', require('./routes/user.js'))
@@ -55,6 +60,12 @@ app.use('/records', require('./routes/record.js'))
 //app.use('/auth', require('./routes/auths.js'))
 
 // 監聽 server 啟動狀態
+
+app.use((req, res, next) => {
+  app.locals.ok = 'no problem'
+  next()
+})
+
 
 app.listen(process.env.PORT || port, (req, res) => {
   console.log(`Server up & running at http://localhost:${port}`)

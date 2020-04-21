@@ -27,10 +27,9 @@ router.get('/', authenticated, (req, res) => {
       })
     })
     .then(records => {
-      // 計算使用者所有月份的支出總金額 
-      app.locals.total = 0
+      // 計算使用者所有月份的支出總金額  
       records.forEach(record => {
-        app.locals.total += record.amount
+        res.locals.total += record.amount
       })
 
       return records
@@ -43,34 +42,32 @@ router.get('/', authenticated, (req, res) => {
     })
     .then(monthlyRecords => {
       // 計算使用者單一月份所有類別的支出總金額 (monthlyTotal)
-      app.locals.monthlyTotal = 0
       monthlyRecords.forEach(monthlyRecord => {
-        app.locals.monthlyTotal += monthlyRecord.amount
+        res.locals.monthlyTotal += monthlyRecord.amount
         monthlyRecord[monthlyRecord.category] = true
       })
 
       if (queriedCategory === 'all') {
         return res.render('index', {
           records: monthlyRecords,
-          total: app.locals.total,
-          monthlyTotal: app.locals.monthlyTotal || '0',
+          total: res.locals.total,
+          monthlyTotal: res.locals.monthlyTotal || '0',
           [queriedCategory]: true,
           queriedMonth
         })
       } else {
         // 計算該月份某一種類支出的總和 (monthlySubtotal)
-        app.locals.monthlySubtotal = 0
         const classifiedRecords = monthlyRecords.filter(monthlyRecord => monthlyRecord.category === queriedCategory)
 
         classifiedRecords.forEach(classifiedRecord => {
-          app.locals.monthlySubtotal += classifiedRecord.amount
+          res.locals.monthlySubtotal += classifiedRecord.amount
         })
 
         return res.render('index', {
           records: classifiedRecords,
-          total: app.locals.total,
-          monthlySubtotal: app.locals.monthlySubtotal || '0',
-          percentage: Math.floor((app.locals.monthlySubtotal / app.locals.monthlyTotal) * 100),
+          total: res.locals.total,
+          monthlySubtotal: res.locals.monthlySubtotal || '0',
+          percentage: Math.floor((res.locals.monthlySubtotal / res.locals.monthlyTotal) * 100),
           [queriedCategory]: true,
           queriedMonth
         })
