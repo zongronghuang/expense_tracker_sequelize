@@ -1,14 +1,11 @@
 # 老爸的私房錢
 ---
-老爸的私房錢 (Alpha Camp 學期三迷你專案)
+老爸的私房錢 (Alpha Camp 學期三期末考迷你專案)[<sup>1</sup>](#1)
 
 此專案採用 MySQL 作為後端資料庫。
 
 ![Demo](/Demo.png)
 
-## 開發目的
----
-做為個人記帳用的網頁應用程式。[<sup>1</sup>](#1)
 
 ## 建立 MySQL 環境
 1. 必須先在個人電腦上安裝及執行 MySQL 資料庫。MySQL 資料庫負責記錄支出項目的資料。
@@ -56,7 +53,9 @@ git clone https://github.com/zongronghuang/expense_tracker_sequelize.git expense
 ## 功能
 ---
 
-登入後可使用下列個人化功能：
+### 登入
+* 本地登入：在本地端註冊後，即可利用註冊的帳號密碼登入使用。
+* Facebook 登入：使用 Facebook 帳號登入。(需自行提供 .env 檔案，在裡面提供 Facebook app 需要的相關資訊才可執行。)
 
 ### 顯示支出項目
 * 進入首頁後，顯示從開始使用到目前累積的**支出總金額**，還有當月的所有支出項目。支出項目包含下列資訊：
