@@ -8,7 +8,27 @@
 
 
 ## 建立 MySQL 環境
-1. 必須先在個人電腦上安裝及執行 MySQL 資料庫。MySQL 資料庫負責記錄支出項目的資料。
+1. 先在個人電腦上安裝及執行 MySQL 資料庫。MySQL 資料庫負責記錄支出項目的資料。
+2. 在 MySQL Workbench 圖形化介面工具上建立資料庫連線。
+3. 接著在 MySQL Workbench 上輸入下列指令，來建立 expense_tracker_sequelize 資料庫：
+```
+drop database if exists expense_tracker_sequelize;
+create database expense_tracker_sequelize;
+use expense_tracker_sequelize;
+```
+4. 在 console 上初始化 Sequelize 套件：
+```
+    npx sequelize init
+```
+5. 將 /migrations 資料夾中的所有檔案移至資料庫執行：
+```
+    npx sequelize db:migrate
+```
+6. 在 MySQL Workbench 上再執行下列指令，即可查看 records 和 users 資料表：
+```
+    select * from records;
+    select * from users;
+```
 
 ## 安裝專案及相依套件
 ---
